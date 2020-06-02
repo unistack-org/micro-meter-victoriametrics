@@ -4,6 +4,6 @@ go 1.13
 
 require (
 	github.com/VictoriaMetrics/metrics v1.9.3
-	github.com/micro/go-micro/v2 v2.5.0
+	github.com/micro/go-micro/v2 v2.8.0
 	github.com/stretchr/testify v1.4.0
 )
