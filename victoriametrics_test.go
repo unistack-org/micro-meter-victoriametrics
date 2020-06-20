@@ -44,10 +44,6 @@ func TestVictoriametrics(t *testing.T) {
 	id := "id-1234567890"
 	version := "1.2.3.4"
 
-	md := make(map[string]string)
-	md["dc"] = "dc1"
-	md["node"] = "node1"
-
 	c := client.NewClient(client.Selector(sel))
 	s := server.NewServer(
 		server.Name(name),
@@ -56,10 +52,9 @@ func TestVictoriametrics(t *testing.T) {
 		server.Registry(registry),
 		server.WrapHandler(
 			NewHandlerWrapper(
-				server.Metadata(md),
-				server.Name(name),
-				server.Version(version),
-				server.Id(id),
+				ServiceName(name),
+				ServiceVersion(version),
+				ServiceID(id),
 			),
 		),
 	)
@@ -97,19 +92,15 @@ func TestVictoriametrics(t *testing.T) {
 	labels := metric[0]["labels"].(map[string]string)
 	for k, v := range labels {
 		switch k {
-		case "micro_dc":
-			assert.Equal(t, "dc1", v)
-		case "micro_node":
-			assert.Equal(t, "node1", v)
 		case "micro_version":
 			assert.Equal(t, version, v)
 		case "micro_id":
 			assert.Equal(t, id, v)
 		case "micro_name":
 			assert.Equal(t, name, v)
-		case "method":
+		case "micro_endpoint":
 			assert.Equal(t, "Test.Method", v)
-		case "quantile", "status":
+		case "micro_status":
 			continue
 		default:
 			t.Fatalf("unknown %v with %v", k, v)
