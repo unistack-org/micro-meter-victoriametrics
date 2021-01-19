@@ -1,6 +1,6 @@
 # VictoriaMetrics
 
-Wrappers are a form of middleware that can be used with go-micro services. They can wrap both the Client and Server handlers.
+Wrappers are a form of middleware that can be used with go-micro services. They can wrap both the Client and Server handlers. 
 This plugin implements the HandlerWrapper interface to provide automatic prometheus metric handling
 for each microservice method execution time and operation count for success and failed cases.
 
@@ -15,9 +15,10 @@ When creating your service, add the wrapper like so.
 ```go
     service := micro.NewService(
         micro.Name("service name"),
-	micro.Version("latest"),
-	micro.WrapHandler(victoriametrics.NewHandlerWrapper()),
+    	micro.Version("latest"),
+    	micro.WrapHandler(victoriametrics.NewHandlerWrapper()),
     )
-
+    
     service.Init()
 ```
+

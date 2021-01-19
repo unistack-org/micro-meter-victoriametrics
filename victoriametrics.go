@@ -7,9 +7,8 @@ import (
 	"time"
 
 	metrics "github.com/VictoriaMetrics/metrics"
-	"github.com/micro/go-micro/v2/client"
-	"github.com/micro/go-micro/v2/registry"
-	"github.com/micro/go-micro/v2/server"
+	"github.com/unistack-org/micro/v3/client"
+	"github.com/unistack-org/micro/v3/server"
 )
 
 var (
@@ -100,23 +99,23 @@ func NewCallWrapper(opts ...Option) client.CallWrapper {
 	}
 }
 
-func (w *wrapper) CallFunc(ctx context.Context, node *registry.Node, req client.Request, rsp interface{}, opts client.CallOptions) error {
+func (w *wrapper) CallFunc(ctx context.Context, addr string, req client.Request, rsp interface{}, opts client.CallOptions) error {
 	endpoint := fmt.Sprintf("%s.%s", req.Service(), req.Endpoint())
 	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
 
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("upstream_latency_seconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("request_duration_seconds", wlabels))
+	timeCounterSummary := metrics.GetOrCreateSummary(getName("client_request_latency_microseconds", wlabels))
+	timeCounterHistogram := metrics.GetOrCreateSummary(getName("client_request_duration_seconds", wlabels))
 
 	ts := time.Now()
-	err := w.callFunc(ctx, node, req, rsp, opts)
+	err := w.callFunc(ctx, addr, req, rsp, opts)
 	te := time.Since(ts)
 
 	timeCounterSummary.Update(float64(te.Seconds()))
 	timeCounterHistogram.Update(te.Seconds())
 	if err == nil {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
 	} else {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
 	}
 
 	return err
@@ -126,8 +125,8 @@ func (w *wrapper) Call(ctx context.Context, req client.Request, rsp interface{},
 	endpoint := fmt.Sprintf("%s.%s", req.Service(), req.Endpoint())
 	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
 
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("upstream_latency_seconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("request_duration_seconds", wlabels))
+	timeCounterSummary := metrics.GetOrCreateSummary(getName("client_request_latency_microseconds", wlabels))
+	timeCounterHistogram := metrics.GetOrCreateSummary(getName("client_request_duration_seconds", wlabels))
 
 	ts := time.Now()
 	err := w.Client.Call(ctx, req, rsp, opts...)
@@ -136,9 +135,9 @@ func (w *wrapper) Call(ctx context.Context, req client.Request, rsp interface{},
 	timeCounterSummary.Update(float64(te.Seconds()))
 	timeCounterHistogram.Update(te.Seconds())
 	if err == nil {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
 	} else {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
 	}
 
 	return err
@@ -148,8 +147,8 @@ func (w *wrapper) Stream(ctx context.Context, req client.Request, opts ...client
 	endpoint := fmt.Sprintf("%s.%s", req.Service(), req.Endpoint())
 	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
 
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("upstream_latency_seconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("request_duration_seconds", wlabels))
+	timeCounterSummary := metrics.GetOrCreateSummary(getName("client_request_latency_microseconds", wlabels))
+	timeCounterHistogram := metrics.GetOrCreateSummary(getName("client_request_duration_seconds", wlabels))
 
 	ts := time.Now()
 	stream, err := w.Client.Stream(ctx, req, opts...)
@@ -158,9 +157,9 @@ func (w *wrapper) Stream(ctx context.Context, req client.Request, opts ...client
 	timeCounterSummary.Update(float64(te.Seconds()))
 	timeCounterHistogram.Update(te.Seconds())
 	if err == nil {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
 	} else {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
 	}
 
 	return stream, err
@@ -170,8 +169,8 @@ func (w *wrapper) Publish(ctx context.Context, p client.Message, opts ...client.
 	endpoint := p.Topic()
 	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
 
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("upstream_latency_seconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("request_duration_seconds", wlabels))
+	timeCounterSummary := metrics.GetOrCreateSummary(getName("publish_message_latency_microseconds", wlabels))
+	timeCounterHistogram := metrics.GetOrCreateSummary(getName("publish_message_duration_seconds", wlabels))
 
 	ts := time.Now()
 	err := w.Client.Publish(ctx, p, opts...)
@@ -180,9 +179,9 @@ func (w *wrapper) Publish(ctx context.Context, p client.Message, opts ...client.
 	timeCounterSummary.Update(float64(te.Seconds()))
 	timeCounterHistogram.Update(te.Seconds())
 	if err == nil {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("publish_message_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
 	} else {
-		metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
+		metrics.GetOrCreateCounter(getName("publish_message_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
 	}
 
 	return err
@@ -203,8 +202,8 @@ func (w *wrapper) HandlerFunc(fn server.HandlerFunc) server.HandlerFunc {
 		endpoint := req.Endpoint()
 		wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
 
-		timeCounterSummary := metrics.GetOrCreateSummary(getName("upstream_latency_seconds", wlabels))
-		timeCounterHistogram := metrics.GetOrCreateSummary(getName("request_duration_seconds", wlabels))
+		timeCounterSummary := metrics.GetOrCreateSummary(getName("server_request_latency_microseconds", wlabels))
+		timeCounterHistogram := metrics.GetOrCreateSummary(getName("server_request_duration_seconds", wlabels))
 
 		ts := time.Now()
 		err := fn(ctx, req, rsp)
@@ -213,9 +212,9 @@ func (w *wrapper) HandlerFunc(fn server.HandlerFunc) server.HandlerFunc {
 		timeCounterSummary.Update(float64(te.Seconds()))
 		timeCounterHistogram.Update(te.Seconds())
 		if err == nil {
-			metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
+			metrics.GetOrCreateCounter(getName("server_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
 		} else {
-			metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
+			metrics.GetOrCreateCounter(getName("server_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
 		}
 
 		return err
@@ -237,8 +236,8 @@ func (w *wrapper) SubscriberFunc(fn server.SubscriberFunc) server.SubscriberFunc
 		endpoint := msg.Topic()
 		wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
 
-		timeCounterSummary := metrics.GetOrCreateSummary(getName("upstream_latency_seconds", wlabels))
-		timeCounterHistogram := metrics.GetOrCreateSummary(getName("request_duration_seconds", wlabels))
+		timeCounterSummary := metrics.GetOrCreateSummary(getName("subscribe_message_latency_microseconds", wlabels))
+		timeCounterHistogram := metrics.GetOrCreateSummary(getName("subscribe_message_duration_seconds", wlabels))
 
 		ts := time.Now()
 		err := fn(ctx, msg)
@@ -247,9 +246,9 @@ func (w *wrapper) SubscriberFunc(fn server.SubscriberFunc) server.SubscriberFunc
 		timeCounterSummary.Update(float64(te.Seconds()))
 		timeCounterHistogram.Update(te.Seconds())
 		if err == nil {
-			metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
+			metrics.GetOrCreateCounter(getName("subscribe_message_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
 		} else {
-			metrics.GetOrCreateCounter(getName("request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
+			metrics.GetOrCreateCounter(getName("subscribe_message_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
 		}
 
 		return err

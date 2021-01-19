@@ -1,11 +1,8 @@
-module github.com/micro/go-plugins/wrapper/monitoring/victoriametrics/v2
+module github.com/unistack-org/micro-meter-victoriametrics/v3
 
 go 1.13
 
 require (
-	github.com/VictoriaMetrics/metrics v1.9.3
-	github.com/micro/go-micro/v2 v2.9.1-0.20200716153311-f9bf56239306
-	github.com/stretchr/testify v1.4.0
+	github.com/VictoriaMetrics/metrics v1.12.3
+	github.com/unistack-org/micro/v3 v3.1.3
 )
-
-replace github.com/coreos/etcd => github.com/ozonru/etcd v3.3.20-grpc1.27-origmodule+incompatible
