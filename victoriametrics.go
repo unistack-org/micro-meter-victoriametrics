@@ -1,256 +1,110 @@
 package victoriametrics
 
 import (
-	"context"
-	"fmt"
+	"io"
 	"strings"
 	"time"
 
-	metrics "github.com/VictoriaMetrics/metrics"
-	"github.com/unistack-org/micro/v3/client"
-	"github.com/unistack-org/micro/v3/server"
+	"github.com/VictoriaMetrics/metrics"
+	"github.com/unistack-org/micro/v3/meter"
 )
 
-var (
-	// default metric prefix
-	DefaultMetricPrefix = "micro_"
-	// default label prefix
-	DefaultLabelPrefix = "micro_"
-)
-
-type Options struct {
-	Name    string
-	Version string
-	ID      string
+type victoriametricsMeter struct {
+	set  *metrics.Set
+	opts meter.Options
 }
 
-type Option func(*Options)
-
-func ServiceName(name string) Option {
-	return func(opts *Options) {
-		opts.Name = name
-	}
+func NewMeter(opts ...meter.Option) meter.Meter {
+	return &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
 }
 
-func ServiceVersion(version string) Option {
-	return func(opts *Options) {
-		opts.Version = version
-	}
-}
+func (r *victoriametricsMeter) buildName(name string, opts ...meter.Option) string {
+	var b strings.Builder
 
-func ServiceID(id string) Option {
-	return func(opts *Options) {
-		opts.ID = id
-	}
-}
-
-func getName(name string, labels []string) string {
-	if len(labels) > 0 {
-		return fmt.Sprintf(`%s%s{%s}`, DefaultMetricPrefix, name, strings.Join(labels, ","))
-	}
-	return fmt.Sprintf(`%s%s`, DefaultMetricPrefix, name)
-}
-
-func getLabels(opts ...Option) []string {
-	options := Options{}
-
-	for _, opt := range opts {
-		opt(&options)
+	options := r.opts
+	for _, o := range opts {
+		o(&options)
 	}
 
-	labels := make([]string, 0, 3)
-	labels = append(labels, fmt.Sprintf(`%sname="%s"`, DefaultLabelPrefix, options.Name))
-	labels = append(labels, fmt.Sprintf(`%sversion="%s"`, DefaultLabelPrefix, options.Version))
-	labels = append(labels, fmt.Sprintf(`%sid="%s"`, DefaultLabelPrefix, options.ID))
-
-	return labels
-}
-
-type wrapper struct {
-	options  Options
-	callFunc client.CallFunc
-	client.Client
-	labels []string
-}
-
-func NewClientWrapper(opts ...Option) client.Wrapper {
-	labels := getLabels(opts...)
-
-	return func(c client.Client) client.Client {
-		handler := &wrapper{
-			labels: labels,
-			Client: c,
+	if len(options.MetricPrefix) > 0 {
+		_, _ = b.WriteString(options.MetricPrefix)
+	}
+	labelPrefix := false
+	if len(options.LabelPrefix) > 0 {
+		labelPrefix = true
+	}
+	_, _ = b.WriteString(name)
+	if options.Labels.Len() > 0 {
+		_, _ = b.WriteRune('{')
+		iter := options.Labels.Iter()
+		var k, v string
+		for idx := 0; iter.Next(&k, &v); idx++ {
+			if idx > 0 {
+				_, _ = b.WriteRune(',')
+			}
+			if labelPrefix {
+				_, _ = b.WriteString(options.LabelPrefix)
+			}
+			_, _ = b.WriteString(k)
+			_, _ = b.WriteString(`="`)
+			_, _ = b.WriteString(v)
+			_, _ = b.WriteString(`"`)
 		}
-
-		return handler
+		_, _ = b.WriteRune('}')
 	}
+
+	return b.String()
 }
 
-func NewCallWrapper(opts ...Option) client.CallWrapper {
-	labels := getLabels(opts...)
-
-	return func(fn client.CallFunc) client.CallFunc {
-		handler := &wrapper{
-			labels:   labels,
-			callFunc: fn,
-		}
-
-		return handler.CallFunc
-	}
+func (r *victoriametricsMeter) Counter(name string, opts ...meter.Option) meter.Counter {
+	return r.set.GetOrCreateCounter(r.buildName(name, opts...))
 }
 
-func (w *wrapper) CallFunc(ctx context.Context, addr string, req client.Request, rsp interface{}, opts client.CallOptions) error {
-	endpoint := fmt.Sprintf("%s.%s", req.Service(), req.Endpoint())
-	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
-
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("client_request_latency_microseconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("client_request_duration_seconds", wlabels))
-
-	ts := time.Now()
-	err := w.callFunc(ctx, addr, req, rsp, opts)
-	te := time.Since(ts)
-
-	timeCounterSummary.Update(float64(te.Seconds()))
-	timeCounterHistogram.Update(te.Seconds())
-	if err == nil {
-		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
-	} else {
-		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
-	}
-
-	return err
+func (r *victoriametricsMeter) FloatCounter(name string, opts ...meter.Option) meter.FloatCounter {
+	return r.set.GetOrCreateFloatCounter(r.buildName(name, opts...))
 }
 
-func (w *wrapper) Call(ctx context.Context, req client.Request, rsp interface{}, opts ...client.CallOption) error {
-	endpoint := fmt.Sprintf("%s.%s", req.Service(), req.Endpoint())
-	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
-
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("client_request_latency_microseconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("client_request_duration_seconds", wlabels))
-
-	ts := time.Now()
-	err := w.Client.Call(ctx, req, rsp, opts...)
-	te := time.Since(ts)
-
-	timeCounterSummary.Update(float64(te.Seconds()))
-	timeCounterHistogram.Update(te.Seconds())
-	if err == nil {
-		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
-	} else {
-		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
-	}
-
-	return err
+func (r *victoriametricsMeter) Gauge(name string, f func() float64, opts ...meter.Option) meter.Gauge {
+	return r.set.GetOrCreateGauge(r.buildName(name, opts...), f)
 }
 
-func (w *wrapper) Stream(ctx context.Context, req client.Request, opts ...client.CallOption) (client.Stream, error) {
-	endpoint := fmt.Sprintf("%s.%s", req.Service(), req.Endpoint())
-	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
-
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("client_request_latency_microseconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("client_request_duration_seconds", wlabels))
-
-	ts := time.Now()
-	stream, err := w.Client.Stream(ctx, req, opts...)
-	te := time.Since(ts)
-
-	timeCounterSummary.Update(float64(te.Seconds()))
-	timeCounterHistogram.Update(te.Seconds())
-	if err == nil {
-		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
-	} else {
-		metrics.GetOrCreateCounter(getName("client_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
-	}
-
-	return stream, err
+func (r *victoriametricsMeter) Histogram(name string, opts ...meter.Option) meter.Histogram {
+	return r.set.GetOrCreateHistogram(r.buildName(name, opts...))
 }
 
-func (w *wrapper) Publish(ctx context.Context, p client.Message, opts ...client.PublishOption) error {
-	endpoint := p.Topic()
-	wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
-
-	timeCounterSummary := metrics.GetOrCreateSummary(getName("publish_message_latency_microseconds", wlabels))
-	timeCounterHistogram := metrics.GetOrCreateSummary(getName("publish_message_duration_seconds", wlabels))
-
-	ts := time.Now()
-	err := w.Client.Publish(ctx, p, opts...)
-	te := time.Since(ts)
-
-	timeCounterSummary.Update(float64(te.Seconds()))
-	timeCounterHistogram.Update(te.Seconds())
-	if err == nil {
-		metrics.GetOrCreateCounter(getName("publish_message_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
-	} else {
-		metrics.GetOrCreateCounter(getName("publish_message_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
-	}
-
-	return err
+func (r *victoriametricsMeter) Summary(name string, opts ...meter.Option) meter.Summary {
+	return r.set.GetOrCreateSummary(r.buildName(name, opts...))
 }
 
-func NewHandlerWrapper(opts ...Option) server.HandlerWrapper {
-	labels := getLabels(opts...)
-
-	handler := &wrapper{
-		labels: labels,
-	}
-
-	return handler.HandlerFunc
+func (r *victoriametricsMeter) SummaryExt(name string, window time.Duration, quantiles []float64, opts ...meter.Option) meter.Summary {
+	return r.set.GetOrCreateSummaryExt(r.buildName(name, opts...), window, quantiles)
 }
 
-func (w *wrapper) HandlerFunc(fn server.HandlerFunc) server.HandlerFunc {
-	return func(ctx context.Context, req server.Request, rsp interface{}) error {
-		endpoint := req.Endpoint()
-		wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
-
-		timeCounterSummary := metrics.GetOrCreateSummary(getName("server_request_latency_microseconds", wlabels))
-		timeCounterHistogram := metrics.GetOrCreateSummary(getName("server_request_duration_seconds", wlabels))
-
-		ts := time.Now()
-		err := fn(ctx, req, rsp)
-		te := time.Since(ts)
-
-		timeCounterSummary.Update(float64(te.Seconds()))
-		timeCounterHistogram.Update(te.Seconds())
-		if err == nil {
-			metrics.GetOrCreateCounter(getName("server_request_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
-		} else {
-			metrics.GetOrCreateCounter(getName("server_request_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
-		}
-
-		return err
-	}
+func (r *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
+	m := &victoriametricsMeter{opts: meter.NewOptions(opts...), set: metrics.NewSet()}
+	return m
 }
 
-func NewSubscriberWrapper(opts ...Option) server.SubscriberWrapper {
-	labels := getLabels(opts...)
-
-	handler := &wrapper{
-		labels: labels,
+func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
+	for _, o := range opts {
+		o(&r.opts)
 	}
 
-	return handler.SubscriberFunc
+	return nil
 }
 
-func (w *wrapper) SubscriberFunc(fn server.SubscriberFunc) server.SubscriberFunc {
-	return func(ctx context.Context, msg server.Message) error {
-		endpoint := msg.Topic()
-		wlabels := append(w.labels, fmt.Sprintf(`%sendpoint="%s"`, DefaultLabelPrefix, endpoint))
-
-		timeCounterSummary := metrics.GetOrCreateSummary(getName("subscribe_message_latency_microseconds", wlabels))
-		timeCounterHistogram := metrics.GetOrCreateSummary(getName("subscribe_message_duration_seconds", wlabels))
-
-		ts := time.Now()
-		err := fn(ctx, msg)
-		te := time.Since(ts)
-
-		timeCounterSummary.Update(float64(te.Seconds()))
-		timeCounterHistogram.Update(te.Seconds())
-		if err == nil {
-			metrics.GetOrCreateCounter(getName("subscribe_message_total", append(wlabels, fmt.Sprintf(`%sstatus="success"`, DefaultLabelPrefix)))).Inc()
-		} else {
-			metrics.GetOrCreateCounter(getName("subscribe_message_total", append(wlabels, fmt.Sprintf(`%sstatus="failure"`, DefaultLabelPrefix)))).Inc()
-		}
-
-		return err
+func (r *victoriametricsMeter) Write(w io.Writer, withProcessMetrics bool) error {
+	r.set.WritePrometheus(w)
+	if withProcessMetrics {
+		metrics.WriteProcessMetrics(w)
 	}
+	return nil
+}
+
+func (r *victoriametricsMeter) Options() meter.Options {
+	return r.opts
+}
+
+func (r *victoriametricsMeter) String() string {
+	return "victoriametrics"
 }
