@@ -58,6 +58,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/unistack-org/micro/v3 v3.1.9 h1:re6KQnKOYHMFZOTnBu/gFX6XbwUkZF6Dopaej3kG1BQ=
 github.com/unistack-org/micro/v3 v3.1.9/go.mod h1:J8XxJj4Pqa3Ee0a4biRRtut7UwTlfBq8QRe+s4PKGS0=
+github.com/unistack-org/micro/v3 v3.2.8 h1:M1qgOz+qgSf/coFeIqDKa7Xc+b3s7du1Yin+i10o3aw=
+github.com/unistack-org/micro/v3 v3.2.8/go.mod h1:J8XxJj4Pqa3Ee0a4biRRtut7UwTlfBq8QRe+s4PKGS0=
 github.com/valyala/fastrand v1.0.0 h1:LUKT9aKer2dVQNUi3waewTbKV+7H17kvWFNKs2ObdkI=
 github.com/valyala/fastrand v1.0.0/go.mod h1:HWqCzkrkg6QXT8V2EXWvXCoow7vLwOFN002oeRzjapQ=
 github.com/valyala/histogram v1.1.2 h1:vOk5VrGjMBIoPR5k6wA8vBaC8toeJ8XO0yfRjFEc1h8=
