@@ -18,6 +18,10 @@ func NewMeter(opts ...meter.Option) meter.Meter {
 	return &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
 }
 
+func (r *victoriametricsMeter) Name() string {
+	return r.opts.Name
+}
+
 func (r *victoriametricsMeter) buildName(name string, opts ...meter.Option) string {
 	var b strings.Builder
 
