@@ -97,10 +97,18 @@ func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
 	return nil
 }
 
-func (r *victoriametricsMeter) Write(w io.Writer, withProcessMetrics bool) error {
+func (r *victoriametricsMeter) Write(w io.Writer, opts ...meter.Option) error {
+	options := r.opts
+	for _, o := range opts {
+		o(&options)
+	}
+
 	r.set.WritePrometheus(w)
-	if withProcessMetrics {
+	if options.WriteProcessMetrics {
 		metrics.WriteProcessMetrics(w)
+	}
+	if options.WriteFDMetrics {
+		metrics.WriteFDMetrics(w)
 	}
 	return nil
 }
