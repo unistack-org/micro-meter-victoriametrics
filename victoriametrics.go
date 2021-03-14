@@ -38,20 +38,19 @@ func (r *victoriametricsMeter) buildName(name string, opts ...meter.Option) stri
 		labelPrefix = true
 	}
 	_, _ = b.WriteString(name)
-	if options.Labels.Len() > 0 {
+	if len(options.Labels) > 0 {
+		meter.Sort(&options.Labels)
 		_, _ = b.WriteRune('{')
-		iter := options.Labels.Iter()
-		var k, v string
-		for idx := 0; iter.Next(&k, &v); idx++ {
+		for idx := 0; idx < len(options.Labels); idx += 2 {
 			if idx > 0 {
 				_, _ = b.WriteRune(',')
 			}
 			if labelPrefix {
 				_, _ = b.WriteString(options.LabelPrefix)
 			}
-			_, _ = b.WriteString(k)
+			_, _ = b.WriteString(options.Labels[idx])
 			_, _ = b.WriteString(`="`)
-			_, _ = b.WriteString(v)
+			_, _ = b.WriteString(options.Labels[idx+1])
 			_, _ = b.WriteString(`"`)
 		}
 		_, _ = b.WriteRune('}')
