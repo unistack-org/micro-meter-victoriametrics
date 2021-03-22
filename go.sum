@@ -1,5 +1,5 @@
-github.com/VictoriaMetrics/metrics v1.17.1 h1:hQCM4mUIrFWe0ZY8czGbiGdMRu7W491MAkH9INFruHI=
-github.com/VictoriaMetrics/metrics v1.17.1/go.mod h1:Z1tSfPfngDn12bTfZSCqArT3OPY3u88J12hSoOhuiRE=
+github.com/VictoriaMetrics/metrics v1.17.2 h1:9zPJ7DPfxdJWshOGLPLpAtPL0ZZ9AeUyQC3fIqG6Lvo=
+github.com/VictoriaMetrics/metrics v1.17.2/go.mod h1:Z1tSfPfngDn12bTfZSCqArT3OPY3u88J12hSoOhuiRE=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/ef-ds/deque v1.0.4/go.mod h1:gXDnTC3yqvBcHbq2lcExjtAcVrOnJCbMcZXmuj8Z4tg=
 github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
