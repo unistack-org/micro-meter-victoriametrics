@@ -22,35 +22,31 @@ func (r *victoriametricsMeter) Name() string {
 	return r.opts.Name
 }
 
-func (r *victoriametricsMeter) buildName(name string, opts ...meter.Option) string {
+func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 	var b strings.Builder
 
-	options := r.opts
-	for _, o := range opts {
-		o(&options)
-	}
-
-	if len(options.MetricPrefix) > 0 {
-		_, _ = b.WriteString(options.MetricPrefix)
+	labels = append(r.opts.Labels, labels...)
+	if len(r.opts.MetricPrefix) > 0 {
+		_, _ = b.WriteString(r.opts.MetricPrefix)
 	}
 	labelPrefix := false
-	if len(options.LabelPrefix) > 0 {
+	if len(r.opts.LabelPrefix) > 0 {
 		labelPrefix = true
 	}
 	_, _ = b.WriteString(name)
-	if len(options.Labels) > 0 {
-		meter.Sort(&options.Labels)
+	if len(labels) > 0 {
+		meter.Sort(&labels)
 		_, _ = b.WriteRune('{')
-		for idx := 0; idx < len(options.Labels); idx += 2 {
+		for idx := 0; idx < len(labels); idx += 2 {
 			if idx > 0 {
 				_, _ = b.WriteRune(',')
 			}
 			if labelPrefix {
-				_, _ = b.WriteString(options.LabelPrefix)
+				_, _ = b.WriteString(r.opts.LabelPrefix)
 			}
-			_, _ = b.WriteString(options.Labels[idx])
+			_, _ = b.WriteString(labels[idx])
 			_, _ = b.WriteString(`="`)
-			_, _ = b.WriteString(options.Labels[idx+1])
+			_, _ = b.WriteString(labels[idx+1])
 			_, _ = b.WriteString(`"`)
 		}
 		_, _ = b.WriteRune('}')
@@ -59,32 +55,36 @@ func (r *victoriametricsMeter) buildName(name string, opts ...meter.Option) stri
 	return b.String()
 }
 
-func (r *victoriametricsMeter) Counter(name string, opts ...meter.Option) meter.Counter {
-	return r.set.GetOrCreateCounter(r.buildName(name, opts...))
+func (r *victoriametricsMeter) Counter(name string, labels ...string) meter.Counter {
+	return r.set.GetOrCreateCounter(r.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) FloatCounter(name string, opts ...meter.Option) meter.FloatCounter {
-	return r.set.GetOrCreateFloatCounter(r.buildName(name, opts...))
+func (r *victoriametricsMeter) FloatCounter(name string, labels ...string) meter.FloatCounter {
+	return r.set.GetOrCreateFloatCounter(r.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) Gauge(name string, f func() float64, opts ...meter.Option) meter.Gauge {
-	return r.set.GetOrCreateGauge(r.buildName(name, opts...), f)
+func (r *victoriametricsMeter) Gauge(name string, f func() float64, labels ...string) meter.Gauge {
+	return r.set.GetOrCreateGauge(r.buildName(name, labels...), f)
 }
 
-func (r *victoriametricsMeter) Histogram(name string, opts ...meter.Option) meter.Histogram {
-	return r.set.GetOrCreateHistogram(r.buildName(name, opts...))
+func (r *victoriametricsMeter) Histogram(name string, labels ...string) meter.Histogram {
+	return r.set.GetOrCreateHistogram(r.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) Summary(name string, opts ...meter.Option) meter.Summary {
-	return r.set.GetOrCreateSummary(r.buildName(name, opts...))
+func (r *victoriametricsMeter) Summary(name string, labels ...string) meter.Summary {
+	return r.set.GetOrCreateSummary(r.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) SummaryExt(name string, window time.Duration, quantiles []float64, opts ...meter.Option) meter.Summary {
-	return r.set.GetOrCreateSummaryExt(r.buildName(name, opts...), window, quantiles)
+func (r *victoriametricsMeter) SummaryExt(name string, window time.Duration, quantiles []float64, labels ...string) meter.Summary {
+	return r.set.GetOrCreateSummaryExt(r.buildName(name, labels...), window, quantiles)
 }
 
 func (r *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
-	m := &victoriametricsMeter{opts: meter.NewOptions(opts...), set: metrics.NewSet()}
+	m := &victoriametricsMeter{opts: r.opts}
+	for _, o := range opts {
+		o(&m.opts)
+	}
+	m.set = metrics.NewSet()
 	return m
 }
 

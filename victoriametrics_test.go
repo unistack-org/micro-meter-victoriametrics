@@ -6,7 +6,6 @@ import (
 
 	"github.com/unistack-org/micro/v3/client"
 	"github.com/unistack-org/micro/v3/codec"
-	"github.com/unistack-org/micro/v3/meter"
 	"github.com/unistack-org/micro/v3/meter/wrapper"
 )
 
@@ -14,12 +13,12 @@ func TestBuildName(t *testing.T) {
 	m := NewMeter()
 	im := m.(*victoriametricsMeter)
 	check := `micro_foo{micro_aaa="b",micro_bar="baz"}`
-	name := im.buildName("foo", meter.Labels("bar", "baz", "aaa", "b"))
+	name := im.buildName("foo", "bar", "baz", "aaa", "b")
 	if name != check {
 		t.Fatalf("metric name error: %s != %s", name, check)
 	}
 
-	cnt := m.Counter("counter", meter.Labels("key", "val"))
+	cnt := m.Counter("counter", "key", "val")
 	cnt.Inc()
 	//m.Write(os.Stdout, meter.WriteProcessMetrics(true), meter.WriteFDMetrics(true))
 }
