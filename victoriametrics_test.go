@@ -1,11 +1,13 @@
 package victoriametrics
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
 	"github.com/unistack-org/micro/v3/client"
 	"github.com/unistack-org/micro/v3/codec"
+	"github.com/unistack-org/micro/v3/meter"
 	"github.com/unistack-org/micro/v3/meter/wrapper"
 )
 
@@ -20,7 +22,6 @@ func TestBuildName(t *testing.T) {
 
 	cnt := m.Counter("counter", "key", "val")
 	cnt.Inc()
-	//m.Write(os.Stdout, meter.WriteProcessMetrics(true), meter.WriteFDMetrics(true))
 }
 
 func TestWrapper(t *testing.T) {
@@ -43,5 +44,9 @@ func TestWrapper(t *testing.T) {
 	req := &codec.Frame{}
 	err := c.Call(ctx, c.NewRequest("svc2", "Service.Method", req), rsp)
 	_, _ = rsp, err
-	//m.Write(os.Stdout, meter.WriteProcessMetrics(true), meter.WriteFDMetrics(true))
+	buf := bytes.NewBuffer(nil)
+	m.Write(buf, meter.WriteProcessMetrics(false), meter.WriteFDMetrics(false))
+	if !bytes.Contains(buf.Bytes(), []byte(`micro_client_request_inflight{micro_endpoint="svc2.Service.Method"} 0`)) {
+		t.Fatalf("invalid metrics output: %s", buf.Bytes())
+	}
 }

@@ -2,7 +2,6 @@ package victoriametrics
 
 import (
 	"io"
-	"strings"
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
@@ -23,36 +22,19 @@ func (r *victoriametricsMeter) Name() string {
 }
 
 func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
-	var b strings.Builder
-
-	labels = append(r.opts.Labels, labels...)
 	if len(r.opts.MetricPrefix) > 0 {
-		_, _ = b.WriteString(r.opts.MetricPrefix)
+		name = r.opts.MetricPrefix + name
 	}
-	labelPrefix := false
-	if len(r.opts.LabelPrefix) > 0 {
-		labelPrefix = true
-	}
-	_, _ = b.WriteString(name)
-	if len(labels) > 0 {
-		meter.Sort(&labels)
-		_, _ = b.WriteRune('{')
-		for idx := 0; idx < len(labels); idx += 2 {
-			if idx > 0 {
-				_, _ = b.WriteRune(',')
-			}
-			if labelPrefix {
-				_, _ = b.WriteString(r.opts.LabelPrefix)
-			}
-			_, _ = b.WriteString(labels[idx])
-			_, _ = b.WriteString(`="`)
-			_, _ = b.WriteString(labels[idx+1])
-			_, _ = b.WriteString(`"`)
-		}
-		_, _ = b.WriteRune('}')
+	if len(r.opts.LabelPrefix) == 0 {
+		return meter.BuildName(name, labels...)
 	}
 
-	return b.String()
+	nlabels := make([]string, len(labels))
+	copy(nlabels, labels)
+	for idx := 0; idx <= len(nlabels)/2; idx += 2 {
+		nlabels[idx] = r.opts.LabelPrefix + nlabels[idx]
+	}
+	return meter.BuildName(name, nlabels...)
 }
 
 func (r *victoriametricsMeter) Counter(name string, labels ...string) meter.Counter {
