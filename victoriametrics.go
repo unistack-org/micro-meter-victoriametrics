@@ -25,6 +25,11 @@ func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 	if len(r.opts.MetricPrefix) > 0 {
 		name = r.opts.MetricPrefix + name
 	}
+
+	if len(labels) == 0 {
+		return name
+	}
+
 	if len(r.opts.LabelPrefix) == 0 {
 		return meter.BuildName(name, labels...)
 	}
