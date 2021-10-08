@@ -5,10 +5,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/unistack-org/micro/v3/client"
-	"github.com/unistack-org/micro/v3/codec"
-	"github.com/unistack-org/micro/v3/meter"
-	"github.com/unistack-org/micro/v3/meter/wrapper"
+	"go.unistack.org/micro/v3/client"
+	"go.unistack.org/micro/v3/codec"
+	"go.unistack.org/micro/v3/meter"
+	"go.unistack.org/micro/v3/meter/wrapper"
 )
 
 func TestBuildName(t *testing.T) {
