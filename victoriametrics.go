@@ -21,6 +21,14 @@ func (r *victoriametricsMeter) Name() string {
 	return r.opts.Name
 }
 
+func (r *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
+	options := r.opts
+	for _, o := range opts {
+		o(&options)
+	}
+	return &victoriametricsMeter{set: r.set, opts: options}
+}
+
 func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 	if len(r.opts.MetricPrefix) > 0 {
 		name = r.opts.MetricPrefix + name
