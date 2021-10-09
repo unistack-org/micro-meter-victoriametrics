@@ -25,7 +25,7 @@ func TestBuildName(t *testing.T) {
 }
 
 func TestWrapper(t *testing.T) {
-	m := NewMeter()
+	m := NewMeter() // meter.Labels("test_key", "test_val"))
 
 	w := wrapper.NewClientWrapper(
 		wrapper.ServiceName("svc1"),
@@ -45,7 +45,7 @@ func TestWrapper(t *testing.T) {
 	err := c.Call(ctx, c.NewRequest("svc2", "Service.Method", req), rsp)
 	_, _ = rsp, err
 	buf := bytes.NewBuffer(nil)
-	m.Write(buf, meter.WriteProcessMetrics(false), meter.WriteFDMetrics(false))
+	_ = m.Write(buf, meter.WriteProcessMetrics(false), meter.WriteFDMetrics(false))
 	if !bytes.Contains(buf.Bytes(), []byte(`micro_client_request_inflight{micro_endpoint="svc2.Service.Method"} 0`)) {
 		t.Fatalf("invalid metrics output: %s", buf.Bytes())
 	}

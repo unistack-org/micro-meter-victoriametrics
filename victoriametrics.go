@@ -34,19 +34,23 @@ func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 		name = r.opts.MetricPrefix + name
 	}
 
-	if len(labels) == 0 {
+	nl := len(r.opts.Labels) + len(labels)
+	if nl == 0 {
 		return name
 	}
 
+	nlabels := make([]string, 0, nl)
+	nlabels = append(nlabels, r.opts.Labels...)
+	nlabels = append(nlabels, labels...)
+
 	if len(r.opts.LabelPrefix) == 0 {
-		return meter.BuildName(name, labels...)
+		return meter.BuildName(name, nlabels...)
 	}
 
-	nlabels := make([]string, len(labels))
-	copy(nlabels, labels)
 	for idx := 0; idx <= len(nlabels)/2; idx += 2 {
 		nlabels[idx] = r.opts.LabelPrefix + nlabels[idx]
 	}
+
 	return meter.BuildName(name, nlabels...)
 }
 
