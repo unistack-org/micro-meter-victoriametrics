@@ -14,8 +14,8 @@ import (
 func TestBuildName(t *testing.T) {
 	m := NewMeter()
 	im := m.(*victoriametricsMeter)
-	check := `micro_foo{micro_aaa="b",micro_bar="baz"}`
-	name := im.buildName("foo", "bar", "baz", "aaa", "b")
+	check := `micro_foo{micro_aaa="b",micro_bar="baz",micro_ccc="d"}`
+	name := im.buildName("foo", "bar", "baz", "aaa", "b", "ccc", "d")
 	if name != check {
 		t.Fatalf("metric name error: %s != %s", name, check)
 	}

@@ -47,10 +47,10 @@ func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 		return meter.BuildName(name, nlabels...)
 	}
 
-	for idx := 0; idx <= len(nlabels)/2; idx += 2 {
+	for idx := 0; idx < nl; idx++ {
 		nlabels[idx] = r.opts.LabelPrefix + nlabels[idx]
+		idx++
 	}
-
 	return meter.BuildName(name, nlabels...)
 }
 
