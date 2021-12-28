@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/VictoriaMetrics/metrics v1.18.1
-	go.unistack.org/micro/v3 v3.8.11
+	go.unistack.org/micro/v3 v3.8.13
 )
