@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
-	"go.unistack.org/micro/v3/meter"
+	"go.unistack.org/micro/v4/meter"
 )
 
 type victoriametricsMeter struct {
