@@ -6,6 +6,7 @@ import (
 
 	"github.com/VictoriaMetrics/metrics"
 	"go.unistack.org/micro/v4/meter"
+	"go.unistack.org/micro/v4/options"
 )
 
 type victoriametricsMeter struct {
@@ -13,7 +14,7 @@ type victoriametricsMeter struct {
 	opts meter.Options
 }
 
-func NewMeter(opts ...meter.Option) meter.Meter {
+func NewMeter(opts ...options.Option) meter.Meter {
 	return &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
 }
 
@@ -21,7 +22,7 @@ func (r *victoriametricsMeter) Name() string {
 	return r.opts.Name
 }
 
-func (r *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
+func (r *victoriametricsMeter) Clone(opts ...options.Option) meter.Meter {
 	options := r.opts
 	for _, o := range opts {
 		o(&options)
@@ -78,7 +79,7 @@ func (r *victoriametricsMeter) SummaryExt(name string, window time.Duration, qua
 	return r.set.GetOrCreateSummaryExt(r.buildName(name, labels...), window, quantiles)
 }
 
-func (r *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
+func (r *victoriametricsMeter) Set(opts ...options.Option) meter.Meter {
 	m := &victoriametricsMeter{opts: r.opts}
 	for _, o := range opts {
 		o(&m.opts)
@@ -87,7 +88,7 @@ func (r *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
 	return m
 }
 
-func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
+func (r *victoriametricsMeter) Init(opts ...options.Option) error {
 	for _, o := range opts {
 		o(&r.opts)
 	}
@@ -95,7 +96,7 @@ func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
 	return nil
 }
 
-func (r *victoriametricsMeter) Write(w io.Writer, opts ...meter.Option) error {
+func (r *victoriametricsMeter) Write(w io.Writer, opts ...options.Option) error {
 	options := r.opts
 	for _, o := range opts {
 		o(&options)
