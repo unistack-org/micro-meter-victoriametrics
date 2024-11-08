@@ -30,10 +30,6 @@ func (r *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
 }
 
 func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
-	if len(r.opts.MetricPrefix) > 0 {
-		name = r.opts.MetricPrefix + name
-	}
-
 	nl := len(r.opts.Labels) + len(labels)
 	if nl == 0 {
 		return name
@@ -43,14 +39,6 @@ func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 	nlabels = append(nlabels, r.opts.Labels...)
 	nlabels = append(nlabels, labels...)
 
-	if len(r.opts.LabelPrefix) == 0 {
-		return meter.BuildName(name, nlabels...)
-	}
-
-	for idx := 0; idx < nl; idx++ {
-		nlabels[idx] = r.opts.LabelPrefix + nlabels[idx]
-		idx++
-	}
 	return meter.BuildName(name, nlabels...)
 }
 
