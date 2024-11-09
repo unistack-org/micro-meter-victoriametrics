@@ -1,6 +1,7 @@
 package victoriametrics
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -15,4 +16,14 @@ func TestBuildName(t *testing.T) {
 
 	cnt := m.Counter("counter", "key", "val")
 	cnt.Inc()
+}
+
+func TestPrometheusCompat(t *testing.T) {
+	m := NewMeter(PrometheusCompat(true))
+	m.Histogram("foo", "key", "val").Update(15)
+
+	buf := bytes.NewBuffer(nil)
+
+	_ = m.Write(buf)
+	t.Logf("\n%s", buf.Bytes())
 }

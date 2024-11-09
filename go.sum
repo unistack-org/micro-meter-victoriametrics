@@ -1,9 +1,9 @@
-github.com/VictoriaMetrics/metrics v1.35.1 h1:o84wtBKQbzLdDy14XeskkCZih6anG+veZ1SwJHFGwrU=
-github.com/VictoriaMetrics/metrics v1.35.1/go.mod h1:r7hveu6xMdUACXvB8TYdAj8WEsKzWB0EkpJN+RDtOf8=
 github.com/valyala/fastrand v1.1.0 h1:f+5HkLW4rsgzdNoleUOB69hyT9IlD2ZQh9GyDMfb5G8=
 github.com/valyala/fastrand v1.1.0/go.mod h1:HWqCzkrkg6QXT8V2EXWvXCoow7vLwOFN002oeRzjapQ=
 github.com/valyala/histogram v1.2.0 h1:wyYGAZZt3CpwUiIb9AU/Zbllg1llXyrtApRS815OLoQ=
 github.com/valyala/histogram v1.2.0/go.mod h1:Hb4kBwb4UxsaNbbbh+RRz8ZR6pdodR57tzWUS3BUzXY=
+go.unistack.org/metrics v0.0.1 h1:sCnGO059ZccGC/D34iRH121eSk+7ci5+OY9cl5K7GKY=
+go.unistack.org/metrics v0.0.1/go.mod h1:1FY4R7EKJa9Oz2D6wlGScNerpl6igRs9Cx/3et4Rgs4=
 go.unistack.org/micro/v3 v3.10.100 h1:yWOaU0ImCGm5k5MUzlIobJUOr+KLfrR/BoDZvcHyKxM=
 go.unistack.org/micro/v3 v3.10.100/go.mod h1:YzMldzHN9Ei+zy5t/Psu7RUWDZwUfrNYiStSQtTz90g=
 golang.org/x/sys v0.27.0 h1:wBqf8DvsY9Y/2P8gAfPDEYNuS30J4lPHJxXSb/nJZ+s=

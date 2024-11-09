@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.23.2
 
 require (
-	github.com/VictoriaMetrics/metrics v1.35.1
+	go.unistack.org/metrics v0.0.1
 	go.unistack.org/micro/v3 v3.10.100
 )
 

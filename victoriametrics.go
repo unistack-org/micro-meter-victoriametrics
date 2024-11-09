@@ -4,17 +4,28 @@ import (
 	"io"
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
+	"go.unistack.org/metrics"
 	"go.unistack.org/micro/v3/meter"
 )
 
 type victoriametricsMeter struct {
-	set  *metrics.Set
-	opts meter.Options
+	set              *metrics.Set
+	opts             meter.Options
+	prometheusCompat bool
+}
+
+type prometheusCompatKey struct{}
+
+func PrometheusCompat(b bool) meter.Option {
+	return meter.SetOption(prometheusCompatKey{}, b)
 }
 
 func NewMeter(opts ...meter.Option) meter.Meter {
-	return &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
+	m := &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
+	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
+		m.prometheusCompat = true
+	}
+	return m
 }
 
 func (r *victoriametricsMeter) Name() string {
@@ -55,6 +66,9 @@ func (r *victoriametricsMeter) Gauge(name string, f func() float64, labels ...st
 }
 
 func (r *victoriametricsMeter) Histogram(name string, labels ...string) meter.Histogram {
+	if r.prometheusCompat {
+		return r.set.GetOrCreateCompatibleHistogram(r.buildName(name, labels...))
+	}
 	return r.set.GetOrCreateHistogram(r.buildName(name, labels...))
 }
 
@@ -96,6 +110,7 @@ func (r *victoriametricsMeter) Write(w io.Writer, opts ...meter.Option) error {
 	if options.WriteFDMetrics {
 		metrics.WriteFDMetrics(w)
 	}
+
 	return nil
 }
 
