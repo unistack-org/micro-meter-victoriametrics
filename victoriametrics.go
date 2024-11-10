@@ -22,88 +22,97 @@ func PrometheusCompat(b bool) meter.Option {
 
 func NewMeter(opts ...meter.Option) meter.Meter {
 	m := &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
-	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
-		m.prometheusCompat = true
+	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok {
+		m.prometheusCompat = v
 	}
 	return m
 }
 
-func (r *victoriametricsMeter) Name() string {
-	return r.opts.Name
+func (m *victoriametricsMeter) Name() string {
+	return m.opts.Name
 }
 
-func (r *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
-	options := r.opts
+func (m *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
+	options := m.opts
 	for _, o := range opts {
 		o(&options)
 	}
-	return &victoriametricsMeter{set: r.set, opts: options}
+	nm := &victoriametricsMeter{set: m.set, opts: options, prometheusCompat: m.prometheusCompat}
+	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok {
+		m.prometheusCompat = v
+	}
+	return nm
 }
 
-func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
-	nl := len(r.opts.Labels) + len(labels)
+func (m *victoriametricsMeter) buildName(name string, labels ...string) string {
+	nl := len(m.opts.Labels) + len(labels)
 	if nl == 0 {
 		return name
 	}
 
 	nlabels := make([]string, 0, nl)
-	nlabels = append(nlabels, r.opts.Labels...)
+	nlabels = append(nlabels, m.opts.Labels...)
 	nlabels = append(nlabels, labels...)
 
 	return meter.BuildName(name, nlabels...)
 }
 
-func (r *victoriametricsMeter) Counter(name string, labels ...string) meter.Counter {
-	return r.set.GetOrCreateCounter(r.buildName(name, labels...))
+func (m *victoriametricsMeter) Counter(name string, labels ...string) meter.Counter {
+	return m.set.GetOrCreateCounter(m.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) FloatCounter(name string, labels ...string) meter.FloatCounter {
-	return r.set.GetOrCreateFloatCounter(r.buildName(name, labels...))
+func (m *victoriametricsMeter) FloatCounter(name string, labels ...string) meter.FloatCounter {
+	return m.set.GetOrCreateFloatCounter(m.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) Gauge(name string, f func() float64, labels ...string) meter.Gauge {
-	return r.set.GetOrCreateGauge(r.buildName(name, labels...), f)
+func (m *victoriametricsMeter) Gauge(name string, f func() float64, labels ...string) meter.Gauge {
+	return m.set.GetOrCreateGauge(m.buildName(name, labels...), f)
 }
 
-func (r *victoriametricsMeter) Histogram(name string, labels ...string) meter.Histogram {
-	if r.prometheusCompat {
-		return r.set.GetOrCreateCompatibleHistogram(r.buildName(name, labels...))
+func (m *victoriametricsMeter) Histogram(name string, labels ...string) meter.Histogram {
+	if m.prometheusCompat {
+		return m.set.GetOrCreateCompatibleHistogram(m.buildName(name, labels...))
 	}
-	return r.set.GetOrCreateHistogram(r.buildName(name, labels...))
+	return m.set.GetOrCreateHistogram(m.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) Summary(name string, labels ...string) meter.Summary {
-	return r.set.GetOrCreateSummary(r.buildName(name, labels...))
+func (m *victoriametricsMeter) Summary(name string, labels ...string) meter.Summary {
+	return m.set.GetOrCreateSummary(m.buildName(name, labels...))
 }
 
-func (r *victoriametricsMeter) SummaryExt(name string, window time.Duration, quantiles []float64, labels ...string) meter.Summary {
-	return r.set.GetOrCreateSummaryExt(r.buildName(name, labels...), window, quantiles)
+func (m *victoriametricsMeter) SummaryExt(name string, window time.Duration, quantiles []float64, labels ...string) meter.Summary {
+	return m.set.GetOrCreateSummaryExt(m.buildName(name, labels...), window, quantiles)
 }
 
-func (r *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
-	m := &victoriametricsMeter{opts: r.opts}
+func (m *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
+	nm := &victoriametricsMeter{opts: m.opts}
+	for _, o := range opts {
+		o(&nm.opts)
+	}
+	nm.set = metrics.NewSet()
+	if v, ok := nm.opts.Context.Value(prometheusCompatKey{}).(bool); ok {
+		nm.prometheusCompat = v
+	}
+	return nm
+}
+
+func (m *victoriametricsMeter) Init(opts ...meter.Option) error {
 	for _, o := range opts {
 		o(&m.opts)
 	}
-	m.set = metrics.NewSet()
-	return m
-}
-
-func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
-	for _, o := range opts {
-		o(&r.opts)
+	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok {
+		m.prometheusCompat = v
 	}
-
 	return nil
 }
 
-func (r *victoriametricsMeter) Write(w io.Writer, opts ...meter.Option) error {
-	options := r.opts
+func (m *victoriametricsMeter) Write(w io.Writer, opts ...meter.Option) error {
+	options := m.opts
 	for _, o := range opts {
 		o(&options)
 	}
 
-	r.set.WritePrometheus(w)
+	m.set.WritePrometheus(w)
 	if options.WriteProcessMetrics {
 		metrics.WriteProcessMetrics(w)
 	}
@@ -114,10 +123,10 @@ func (r *victoriametricsMeter) Write(w io.Writer, opts ...meter.Option) error {
 	return nil
 }
 
-func (r *victoriametricsMeter) Options() meter.Options {
-	return r.opts
+func (m *victoriametricsMeter) Options() meter.Options {
+	return m.opts
 }
 
-func (r *victoriametricsMeter) String() string {
+func (m *victoriametricsMeter) String() string {
 	return "victoriametrics"
 }
