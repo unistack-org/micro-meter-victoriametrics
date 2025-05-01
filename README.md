@@ -1,4 +1,5 @@
 # VictoriaMetrics
+![Coverage](https://img.shields.io/badge/Coverage-3.5%25-red)
 
 Wrappers are a form of middleware that can be used with go-micro services. They can wrap both the Client and Server handlers. 
 This plugin implements the HandlerWrapper interface to provide automatic prometheus metric handling
@@ -21,4 +22,3 @@ When creating your service, add the wrapper like so.
     
     service.Init()
 ```
-
