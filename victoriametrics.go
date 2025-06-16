@@ -9,12 +9,17 @@ import (
 )
 
 type victoriametricsMeter struct {
-	set  *metrics.Set
-	opts meter.Options
+	set              *metrics.Set
+	opts             meter.Options
+	prometheusCompat bool
 }
 
 func NewMeter(opts ...meter.Option) meter.Meter {
-	return &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
+	m := &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
+	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
+		m.prometheusCompat = v
+	}
+	return m
 }
 
 func (r *victoriametricsMeter) Name() string {
@@ -26,7 +31,11 @@ func (r *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
 	for _, o := range opts {
 		o(&options)
 	}
-	return &victoriametricsMeter{set: r.set, opts: options}
+	m := &victoriametricsMeter{set: r.set, opts: options}
+	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
+		m.prometheusCompat = v
+	}
+	return m
 }
 
 func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
@@ -55,6 +64,9 @@ func (r *victoriametricsMeter) Gauge(name string, f func() float64, labels ...st
 }
 
 func (r *victoriametricsMeter) Histogram(name string, labels ...string) meter.Histogram {
+	if r.prometheusCompat {
+		return r.set.GetOrCreatePrometheusHistogram(r.buildName(name, labels...))
+	}
 	return r.set.GetOrCreateHistogram(r.buildName(name, labels...))
 }
 
@@ -67,7 +79,7 @@ func (r *victoriametricsMeter) SummaryExt(name string, window time.Duration, qua
 }
 
 func (r *victoriametricsMeter) Set(opts ...meter.Option) meter.Meter {
-	m := &victoriametricsMeter{opts: r.opts}
+	m := &victoriametricsMeter{opts: r.opts, prometheusCompat: r.prometheusCompat}
 	for _, o := range opts {
 		o(&m.opts)
 	}
@@ -79,7 +91,9 @@ func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
 	for _, o := range opts {
 		o(&r.opts)
 	}
-
+	if v, ok := r.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
+		r.prometheusCompat = v
+	}
 	return nil
 }
 
@@ -105,4 +119,10 @@ func (r *victoriametricsMeter) Options() meter.Options {
 
 func (r *victoriametricsMeter) String() string {
 	return "victoriametrics"
+}
+
+type prometheusCompatKey struct{}
+
+func PrometheusCompat(b bool) meter.Option {
+	return meter.SetOption(prometheusCompatKey{}, b)
 }
