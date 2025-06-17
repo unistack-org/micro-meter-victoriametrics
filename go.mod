@@ -6,7 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/VictoriaMetrics/metrics v1.38.0
-	go.unistack.org/micro/v4 v4.1.17
+	go.unistack.org/micro/v4 v4.1.18
 )
 
 require (
@@ -17,7 +17,7 @@ require (
 	github.com/valyala/histogram v1.2.0 // indirect
 	go.unistack.org/micro-proto/v4 v4.1.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241216192217-9240e9c98484 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.72.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )

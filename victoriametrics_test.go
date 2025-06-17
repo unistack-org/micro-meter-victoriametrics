@@ -10,10 +10,23 @@ import (
 	"go.unistack.org/micro/v4/meter"
 )
 
+func BenchmarkBuildName(b *testing.B) {
+	m := NewMeter(meter.Labels("pod", "xxx"))
+	if err := m.Init(); err != nil {
+		b.Fatal(err)
+	}
+	im := m.(*victoriametricsMeter)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		name := im.buildName("micro_foo", "bar", "baz", "aaa", "b", "ccc", "d")
+		_ = name
+	}
+}
+
 func TestBuildName(t *testing.T) {
 	m := NewMeter()
 	im := m.(*victoriametricsMeter)
-	check := `micro_foo{aaa="b",bar="baz",ccc="d"}`
+	check := `micro_foo{bar="baz",aaa="b",ccc="d"}`
 	name := im.buildName("micro_foo", "bar", "baz", "aaa", "b", "ccc", "d")
 	if name != check {
 		t.Fatalf("metric name error: %s != %s", name, check)
@@ -40,7 +53,7 @@ func TestWrapper(t *testing.T) {
 	_, _ = rsp, err
 	buf := bytes.NewBuffer(nil)
 	_ = m.Write(buf, meter.WriteProcessMetrics(false), meter.WriteFDMetrics(false))
-	if !bytes.Contains(buf.Bytes(), []byte(`micro_client_request_total{code="500",endpoint="Service.Method",status="failure"} 1`)) {
+	if !bytes.Contains(buf.Bytes(), []byte(`micro_client_request_total{endpoint="Service.Method",status="failure",code="500"} 1`)) {
 		t.Fatalf("invalid metrics output: %s", buf.Bytes())
 	}
 }
