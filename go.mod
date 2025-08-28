@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.4
 
 require (
-	github.com/VictoriaMetrics/metrics v1.38.0
+	github.com/VictoriaMetrics/metrics v1.39.1
 	go.unistack.org/micro/v4 v4.1.19
 )
 
