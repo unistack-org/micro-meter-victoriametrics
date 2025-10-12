@@ -30,8 +30,8 @@ github.com/valyala/histogram v1.2.0 h1:wyYGAZZt3CpwUiIb9AU/Zbllg1llXyrtApRS815OL
 github.com/valyala/histogram v1.2.0/go.mod h1:Hb4kBwb4UxsaNbbbh+RRz8ZR6pdodR57tzWUS3BUzXY=
 go.unistack.org/micro-proto/v4 v4.1.0 h1:qPwL2n/oqh9RE3RTTDgt28XK3QzV597VugQPaw9lKUk=
 go.unistack.org/micro-proto/v4 v4.1.0/go.mod h1:ArmK7o+uFvxSY3dbJhKBBX4Pm1rhWdLEFf3LxBrMtec=
-go.unistack.org/micro/v4 v4.1.22 h1:CBRwTxj53gtFkQKyzUeoIad9LyyJaMCJDcsmzUwXHdI=
-go.unistack.org/micro/v4 v4.1.22/go.mod h1:nlBXTbx0rQrSZX4HPp2m57PHmpuGPWUd0O+jpUIiPto=
+go.unistack.org/micro/v4 v4.1.23 h1:T9O1O1mN60JHqIAIw+XkNik8xb0h90O9fJ55uQMb8VU=
+go.unistack.org/micro/v4 v4.1.23/go.mod h1:nlBXTbx0rQrSZX4HPp2m57PHmpuGPWUd0O+jpUIiPto=
 golang.org/x/net v0.35.0 h1:T5GQRQb2y08kTAByq9L4/bz8cipCdA8FbRTXewonqY8=
 golang.org/x/net v0.35.0/go.mod h1:EglIi67kWsHKlRzzVMUD93VMSWGFOMSZgxFjparz1Qk=
 golang.org/x/sys v0.37.0 h1:fdNQudmxPjkdUTPnLn5mdQv7Zwvbvpaxqs831goi9kQ=

@@ -69,7 +69,14 @@ func (r *victoriametricsMeter) Gauge(name string, f func() float64, labels ...st
 
 func (r *victoriametricsMeter) Histogram(name string, labels ...string) meter.Histogram {
 	if r.prometheusCompat {
-		return r.set.GetOrCreatePrometheusHistogram(r.buildName(name, labels...))
+		return r.set.GetOrCreatePrometheusHistogramExt(r.buildName(name, labels...), r.opts.Quantiles)
+	}
+	return r.set.GetOrCreateHistogram(r.buildName(name, labels...))
+}
+
+func (r *victoriametricsMeter) HistogramExt(name string, quantiles []float64, labels ...string) meter.Histogram {
+	if r.prometheusCompat {
+		return r.set.GetOrCreatePrometheusHistogramExt(r.buildName(name, labels...), quantiles)
 	}
 	return r.set.GetOrCreateHistogram(r.buildName(name, labels...))
 }
@@ -97,6 +104,9 @@ func (r *victoriametricsMeter) Init(opts ...meter.Option) error {
 	}
 	if v, ok := r.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
 		r.prometheusCompat = v
+	}
+	if r.opts.Quantiles == nil {
+		r.opts.Quantiles = meter.DefaultQuantiles
 	}
 	return nil
 }
