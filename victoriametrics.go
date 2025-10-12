@@ -26,6 +26,10 @@ func (r *victoriametricsMeter) Name() string {
 	return r.opts.Name
 }
 
+func (r *victoriametricsMeter) Unregister(name string, labels ...string) bool {
+	return r.set.UnregisterMetric(r.buildName(name, labels...))
+}
+
 func (r *victoriametricsMeter) Clone(opts ...meter.Option) meter.Meter {
 	options := r.opts
 	for _, o := range opts {

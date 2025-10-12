@@ -1,12 +1,12 @@
 module go.unistack.org/micro-meter-victoriametrics/v4
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.4
 
 require (
-	github.com/VictoriaMetrics/metrics v1.38.0
-	go.unistack.org/micro/v4 v4.1.19
+	github.com/VictoriaMetrics/metrics v1.40.2
+	go.unistack.org/micro/v4 v4.1.22
 )
 
 require (
@@ -16,7 +16,7 @@ require (
 	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/valyala/histogram v1.2.0 // indirect
 	go.unistack.org/micro-proto/v4 v4.1.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.72.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
