@@ -6,16 +6,22 @@ import (
 
 	"github.com/VictoriaMetrics/metrics"
 	"go.unistack.org/micro/v4/meter"
+	xpool "go.unistack.org/micro/v4/util/xpool"
 )
 
 type victoriametricsMeter struct {
 	set              *metrics.Set
 	opts             meter.Options
 	prometheusCompat bool
+	builderPool      *xpool.StringsPool
 }
 
 func NewMeter(opts ...meter.Option) meter.Meter {
-	m := &victoriametricsMeter{set: metrics.NewSet(), opts: meter.NewOptions(opts...)}
+	m := &victoriametricsMeter{
+		set:         metrics.NewSet(),
+		opts:        meter.NewOptions(opts...),
+		builderPool: xpool.NewStringsPool(256),
+	}
 	if v, ok := m.opts.Context.Value(prometheusCompatKey{}).(bool); ok && v {
 		m.prometheusCompat = v
 	}
@@ -48,11 +54,34 @@ func (r *victoriametricsMeter) buildName(name string, labels ...string) string {
 		return name
 	}
 
-	nlabels := make([]string, 0, nl)
-	nlabels = append(nlabels, r.opts.Labels...)
-	nlabels = append(nlabels, labels...)
+	b := r.builderPool.Get()
+	defer r.builderPool.Put(b)
 
-	return meter.BuildName(name, nlabels...)
+	b.WriteString(name)
+	b.WriteByte('{')
+
+	for i := 0; i < len(r.opts.Labels); i += 2 {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		b.WriteString(r.opts.Labels[i])
+		b.WriteString(`="`)
+		b.WriteString(r.opts.Labels[i+1])
+		b.WriteByte('"')
+	}
+
+	for i := 0; i < len(labels); i += 2 {
+		if i > 0 || len(r.opts.Labels) > 0 {
+			b.WriteByte(',')
+		}
+		b.WriteString(labels[i])
+		b.WriteString(`="`)
+		b.WriteString(labels[i+1])
+		b.WriteByte('"')
+	}
+
+	b.WriteByte('}')
+	return b.String()
 }
 
 func (r *victoriametricsMeter) Counter(name string, labels ...string) meter.Counter {
