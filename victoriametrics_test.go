@@ -5,9 +5,9 @@ import (
 	"context"
 	"testing"
 
-	"go.unistack.org/micro/v4/client"
-	"go.unistack.org/micro/v4/codec"
-	"go.unistack.org/micro/v4/meter"
+	"go.unistack.org/micro/v5/client"
+	"go.unistack.org/micro/v5/codec"
+	"go.unistack.org/micro/v5/meter"
 )
 
 func BenchmarkBuildName(b *testing.B) {

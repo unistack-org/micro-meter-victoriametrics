@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
-	"go.unistack.org/micro/v4/meter"
-	xpool "go.unistack.org/micro/v4/util/xpool"
+	"go.unistack.org/micro/v5/meter"
+	xpool "go.unistack.org/micro/v5/util/xpool"
 )
 
 type victoriametricsMeter struct {
