@@ -1,10 +1,10 @@
 module go.unistack.org/micro-meter-victoriametrics/v5
 
-go 1.25
+go 1.26
 
 require (
 	github.com/VictoriaMetrics/metrics v1.40.2
-	go.unistack.org/micro/v5 v4.1.25
+	go.unistack.org/micro/v5 v5.0.4
 )
 
 require (
@@ -13,11 +13,9 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/valyala/histogram v1.2.0 // indirect
-	go.unistack.org/micro-proto/v5 v4.1.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/grpc v1.79.3 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	go.unistack.org/micro-proto/v5 v5.0.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/grpc v1.83.2 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
-
-replace github.com/VictoriaMetrics/metrics => github.com/NickPak/metrics v1.43.1-perf

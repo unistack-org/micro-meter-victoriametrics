@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"go.unistack.org/micro/v5/client"
-	"go.unistack.org/micro/v5/codec"
 	"go.unistack.org/micro/v5/meter"
 )
+
+type testFrame struct{}
 
 func BenchmarkBuildName(b *testing.B) {
 	m := NewMeter(meter.Labels("pod", "xxx"))
@@ -47,8 +48,8 @@ func TestWrapper(t *testing.T) {
 	if err := c.Init(); err != nil {
 		t.Fatal(err)
 	}
-	rsp := &codec.Frame{}
-	req := &codec.Frame{}
+	rsp := &testFrame{}
+	req := &testFrame{}
 	err := c.Call(ctx, c.NewRequest("svc2", "Service.Method", req), rsp)
 	_, _ = rsp, err
 	buf := bytes.NewBuffer(nil)
